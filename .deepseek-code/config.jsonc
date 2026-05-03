@@ -1,0 +1,49 @@
+{
+  // deepseek-code default configuration
+  "provider": {
+    "deepseek": {
+      "name": "DeepSeek",
+      "npm": "@ai-sdk/openai-compatible",
+      "env": ["DEEPSEEK_API_KEY"],
+      "options": {
+        "baseURL": "https://api.deepseek.com"
+      },
+      "models": {
+        "deepseek-v4-pro": {
+          "name": "DeepSeek V4 Pro",
+          "attachment": true,
+          "reasoning": true,
+          "temperature": false,
+          "tool_call": true,
+          "cost": {
+            "input": 0.435,
+            "output": 0.87,
+            "cache_read": 0.003625
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 384000
+          }
+        },
+        "deepseek-v4-flash": {
+          "name": "DeepSeek V4 Flash",
+          "attachment": true,
+          "reasoning": true,
+          "temperature": false,
+          "tool_call": true,
+          "cost": {
+            "input": 0.14,
+            "output": 0.28,
+            "cache_read": 0.0028
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 384000
+          }
+        }
+      }
+    }
+  },
+  // Default to DeepSeek V4 Pro for the build agent
+  "model": "deepseek/deepseek-v4-pro"
+}

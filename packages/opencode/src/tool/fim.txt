@@ -1,0 +1,10 @@
+Perform code completion at a specific position in a file using DeepSeek's Fill-in-the-Middle (FIM) capability.
+
+This tool reads the file content, splits it at the specified cursor position, and uses DeepSeek's FIM API to generate a contextually appropriate code completion.
+
+Usage notes:
+- Provide the absolute file path and the cursor position (line and column, 1-indexed)
+- The tool will return the generated code that should be inserted at the cursor position
+- Best suited for completing function bodies, filling in missing code blocks, or generating boilerplate
+- Maximum output is 4096 tokens
+- This uses DeepSeek's specialized code completion model for optimal results
