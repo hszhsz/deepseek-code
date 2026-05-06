@@ -23,6 +23,7 @@ import { isRecord } from "@/util/record"
 import { EventV2 } from "@/v2/event"
 import { SessionEvent } from "@/v2/session-event"
 import * as DateTime from "effect/DateTime"
+import { AntiLoop } from "./anti-loop"
 
 const DOOM_LOOP_THRESHOLD = 3
 const log = Log.create({ service: "session.processor" })
@@ -74,6 +75,7 @@ interface ProcessorContext extends Input {
   needsCompaction: boolean
   currentText: MessageV2.TextPart | undefined
   reasoningMap: Record<string, MessageV2.ReasoningPart>
+  antiLoop: AntiLoop.AntiLoopGuard
 }
 
 type StreamEvent = Event
@@ -124,6 +126,7 @@ export const layer: Layer.Layer<
         needsCompaction: false,
         currentText: undefined,
         reasoningMap: {},
+        antiLoop: AntiLoop.createAntiLoopGuard(),
       }
       let aborted = false
       const slog = log.clone().tag("session.id", input.sessionID).tag("messageID", input.assistantMessage.id)
@@ -346,6 +349,18 @@ export const layer: Layer.Layer<
                 : value.providerMetadata,
             }))
 
+            // Anti-Loop Guard: check for repeated identical tool calls
+            const loopMessage = ctx.antiLoop.check(value.toolName, value.input)
+            if (loopMessage) {
+              slog.warn("anti-loop triggered", { tool: value.toolName })
+              yield* completeToolCall(value.toolCallId, {
+                title: "Loop Detected",
+                output: loopMessage,
+                metadata: { error: true, antiLoop: true },
+              })
+              return
+            }
+
             const parts = MessageV2.parts(ctx.assistantMessage.id)
             const recentParts = parts.slice(-DOOM_LOOP_THRESHOLD)
 
@@ -404,6 +419,12 @@ export const layer: Layer.Layer<
 
           case "tool-error": {
             const toolCall = yield* readToolCall(value.toolCallId)
+            // Anti-Loop Guard: track per-tool failures
+            const toolName = toolCall?.part.tool ?? "unknown"
+            const failureWarning = ctx.antiLoop.recordFailure(toolName)
+            if (failureWarning) {
+              slog.warn("anti-loop failure threshold", { tool: toolName })
+            }
             // TODO(v2): Temporary dual-write while migrating session messages to v2 events.
             EventV2.run(SessionEvent.Tool.Error.Sync, {
               sessionID: ctx.sessionID,

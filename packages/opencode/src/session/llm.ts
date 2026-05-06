@@ -24,6 +24,7 @@ import { InstallationVersion } from "@opencode-ai/core/installation/version"
 import { EffectBridge } from "@/effect/bridge"
 import * as Option from "effect/Option"
 import * as OtelTracer from "@effect/opentelemetry/Tracer"
+import { AutoReasoning } from "@/provider/auto-reasoning"
 
 const log = Log.create({ service: "llm" })
 export const OUTPUT_TOKEN_MAX = ProviderTransform.OUTPUT_TOKEN_MAX
@@ -139,6 +140,34 @@ const live: Layer.Layer<
             providerOptions: item.options,
           })
       const options = mergeOptions(mergeOptions(mergeOptions(base, input.model.options), input.agent.options), variant)
+
+      // Auto Reasoning: adaptively select reasoning effort for DeepSeek models
+      if (AutoReasoning.supportsReasoningEffort(input.model.id) && !input.small) {
+        const userText = input.messages
+          .filter((m) => m.role === "user")
+          .flatMap((m) => (typeof m.content === "string" ? [m.content] : Array.isArray(m.content) ? m.content.filter((p: any) => p.type === "text").map((p: any) => p.text) : []))
+          .join(" ")
+          .slice(0, 2000) // Only analyze first 2000 chars for efficiency
+
+        const configEffort = cfg.reasoning_effort
+        const userPreference = configEffort && configEffort !== "auto"
+          ? (configEffort as AutoReasoning.ReasoningEffort)
+          : undefined
+
+        const effort = AutoReasoning.selectReasoningEffort({
+          agent: input.agent.name,
+          messageText: userText,
+          isSubAgent: input.agent.mode === "subagent",
+          userPreference,
+        })
+
+        // Only apply if no variant already set a reasoning effort
+        if (!options.reasoningEffort && effort !== "off") {
+          Object.assign(options, AutoReasoning.reasoningEffortToOptions(effort))
+        }
+        l.info("auto-reasoning", { effort, agent: input.agent.name })
+      }
+
       if (isOpenaiOauth) {
         options.instructions = system.join("\n")
       }

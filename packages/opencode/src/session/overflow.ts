@@ -2,6 +2,7 @@ import type { Config } from "@/config/config"
 import type { Provider } from "@/provider/provider"
 import { ProviderTransform } from "@/provider/transform"
 import type { MessageV2 } from "./message-v2"
+import { isDeepSeekModel, shouldSkipCompaction } from "./deepseek-context"
 
 const COMPACTION_BUFFER = 20_000
 
@@ -22,5 +23,26 @@ export function isOverflow(input: { cfg: Config.Info; tokens: MessageV2.Assistan
 
   const count =
     input.tokens.total || input.tokens.input + input.tokens.output + input.tokens.cache.read + input.tokens.cache.write
-  return count >= usable(input)
+
+  const limit = usable(input)
+  const exceeds = count >= limit
+
+  // Cache-aware compaction: for DeepSeek models, skip compaction if the
+  // prefix cache is healthy and we're not critically close to overflow.
+  // Destroying the cache costs more than the context pressure at this level.
+  if (exceeds && isDeepSeekModel(input.model.id)) {
+    const cacheTokens = input.tokens.cache.read + input.tokens.cache.write
+    const totalInput = input.tokens.input + cacheTokens
+    const cacheHitRatio = totalInput > 0 ? cacheTokens / totalInput : 0
+
+    if (shouldSkipCompaction({
+      currentTokens: count,
+      contextLimit: input.model.limit.context,
+      recentCacheHitRatio: cacheHitRatio,
+    })) {
+      return false
+    }
+  }
+
+  return exceeds
 }

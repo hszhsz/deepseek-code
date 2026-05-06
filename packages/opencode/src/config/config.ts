@@ -206,6 +206,10 @@ export const Info = Schema.Struct({
   layout: Schema.optional(ConfigLayout.Layout).annotate({ description: "@deprecated Always uses stretch layout." }),
   permission: Schema.optional(ConfigPermission.Info),
   tools: Schema.optional(Schema.Record(Schema.String, Schema.Boolean)),
+  reasoning_effort: Schema.optional(Schema.Literals(["off", "low", "high", "max", "auto"])).annotate({
+    description:
+      'Reasoning effort for DeepSeek models. "auto" dynamically selects based on message complexity. (default: "auto")',
+  }),
   enterprise: Schema.optional(
     Schema.Struct({
       url: Schema.optional(Schema.String).annotate({ description: "Enterprise URL" }),
