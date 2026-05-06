@@ -7,6 +7,7 @@ import { Agent } from "../agent/agent"
 import type { SessionPrompt } from "../session/prompt"
 import { Config } from "@/config/config"
 import { Effect, Schema } from "effect"
+import { extractSummary, formatForParent } from "../enhancements/subagent-isolation"
 
 export interface TaskPromptOps {
   cancel(sessionID: SessionID): void
@@ -154,13 +155,12 @@ export const TaskTool = Tool.define(
                 sessionId: nextSession.id,
                 model,
               },
-              output: [
-                `task_id: ${nextSession.id} (for resuming to continue this task if needed)`,
-                "",
-                "<task_result>",
-                result.parts.findLast((item) => item.type === "text")?.text ?? "",
-                "</task_result>",
-              ].join("\n"),
+              output: (() => {
+                const rawText = result.parts.findLast((item) => item.type === "text")?.text ?? ""
+                // Use subagent isolation: summarize output for parent context savings
+                const summary = extractSummary(rawText, params.description)
+                return formatForParent(summary, nextSession.id)
+              })(),
             }
           }),
         () =>

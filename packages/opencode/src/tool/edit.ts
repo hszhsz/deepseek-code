@@ -18,6 +18,7 @@ import { Snapshot } from "@/snapshot"
 import { assertExternalDirectoryEffect } from "./external-directory"
 import { AppFileSystem } from "@opencode-ai/core/filesystem"
 import * as Bom from "@/util/bom"
+import { assertReadBeforeEdit } from "../enhancements/read-tracker"
 
 function normalizeLineEndings(text: string): string {
   return text.replaceAll("\r\n", "\n")
@@ -81,6 +82,17 @@ export const EditTool = Tool.define(
             ? params.filePath
             : path.join(instance.directory, params.filePath)
           yield* assertExternalDirectoryEffect(ctx, filePath)
+
+          // Read-Before-Edit guard: ensure the file was read in this session
+          const isNew = params.oldString === ""
+          yield* Effect.promise(() =>
+            assertReadBeforeEdit({
+              sessionID: ctx.sessionID,
+              filePath,
+              isNewFile: isNew,
+              bypass: Boolean(ctx.extra?.["bypassReadCheck"]),
+            }),
+          )
 
           let diff = ""
           let contentOld = ""

@@ -1,6 +1,6 @@
 import { Effect, Option, Schema, Scope } from "effect"
 import { NonNegativeInt } from "@/util/schema"
-import { createReadStream } from "fs"
+import { createReadStream, statSync } from "fs"
 import * as path from "path"
 import { createInterface } from "readline"
 import * as Tool from "./tool"
@@ -11,6 +11,7 @@ import { InstanceState } from "@/effect/instance-state"
 import { assertExternalDirectoryEffect } from "./external-directory"
 import { Instruction } from "../session/instruction"
 import { isPdfAttachment, sniffAttachmentMime } from "@/util/media"
+import { markRead } from "../enhancements/read-tracker"
 
 const DEFAULT_READ_LIMIT = 2000
 const MAX_LINE_LENGTH = 2000
@@ -269,6 +270,15 @@ export const ReadTool = Tool.define(
       output += "\n</content>"
 
       yield* warm(filepath)
+
+      // Track this read for Read-Before-Edit guard
+      try {
+        const st = statSync(filepath)
+        markRead({ sessionID: ctx.sessionID, filePath: filepath, mtimeMs: st.mtimeMs })
+      } catch {
+        // Non-critical: if stat fails, still proceed
+        markRead({ sessionID: ctx.sessionID, filePath: filepath })
+      }
 
       if (loaded.length > 0) {
         output += `\n\n<system-reminder>\n${loaded.map((item) => item.content).join("\n\n")}\n</system-reminder>`

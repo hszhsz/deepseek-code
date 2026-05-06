@@ -22,6 +22,7 @@ import { ChildProcess } from "effect/unstable/process"
 import { ChildProcessSpawner } from "effect/unstable/process/ChildProcessSpawner"
 import { ShellPrompt, type Parameters } from "./shell/prompt"
 import { BashArity } from "@/permission/arity"
+import { assertCommandSafe } from "../enhancements/bash-safety"
 
 export { Parameters } from "./shell/prompt"
 
@@ -593,6 +594,9 @@ export const ShellTool = Tool.define(
           parameters: prompt.parameters,
           execute: (params: Parameters, ctx: Tool.Context) =>
             Effect.gen(function* () {
+              // Bash safety check: block dangerous/network commands
+              assertCommandSafe(params.command)
+
               const executeInstance = yield* InstanceState.context
               const cwd = params.workdir
                 ? yield* resolvePath(params.workdir, executeInstance.directory, shell)
