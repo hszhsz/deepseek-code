@@ -54,6 +54,10 @@ export const ModelsCommand = effectCmd({
     }
 
     const ids = Object.keys(providers).sort((a, b) => {
+      const aIsDeepseek = a.startsWith("deepseek")
+      const bIsDeepseek = b.startsWith("deepseek")
+      if (aIsDeepseek && !bIsDeepseek) return -1
+      if (!aIsDeepseek && bIsDeepseek) return 1
       const aIsOpencode = a.startsWith("opencode")
       const bIsOpencode = b.startsWith("opencode")
       if (aIsOpencode && !bIsOpencode) return -1
