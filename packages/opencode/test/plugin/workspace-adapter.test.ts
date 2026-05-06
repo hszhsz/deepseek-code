@@ -69,7 +69,7 @@ describe("plugin.workspace", () => {
 
         yield* Effect.promise(() =>
           Bun.write(
-            path.join(dir, "opencode.json"),
+            path.join(dir, "deepseek-code.json"),
             JSON.stringify(
               {
                 $schema: "https://opencode.ai/config.json",

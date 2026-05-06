@@ -162,8 +162,8 @@ npm plugins can declare a version compatibility range in `package.json` using th
 - Alias: `opencode plug <module>`.
 - `-g` / `--global` writes into the global config dir.
 - Local installs resolve target dir inside `patchPluginConfig`.
-- For local scope, path is `<worktree>/.opencode` only when VCS is git and `worktree !== "/"`; otherwise `<directory>/.opencode`.
-- Root-worktree fallback (`worktree === "/"` uses `<directory>/.opencode`) is covered by regression tests.
+- For local scope, path is `<worktree>/.deepseek-code` only when VCS is git and `worktree !== "/"`; otherwise `<directory>/.deepseek-code`.
+- Root-worktree fallback (`worktree === "/"` uses `<directory>/.deepseek-code`) is covered by regression tests.
 - `patchPluginConfig` applies all detected targets (`server` and/or `tui`) in one call.
 - `patchPluginConfig` returns structured result unions (`ok`, `code`, fields by error kind) instead of custom thrown errors.
 - `patchPluginConfig` serializes per-target config writes with `Flock.acquire(...)`.
@@ -180,7 +180,7 @@ npm plugins can declare a version compatibility range in `package.json` using th
 - There is no uninstall, list, or update CLI command for external plugins.
 - Local file plugins are configured directly in `tui.json`.
 
-When `plugin` entries exist in a writable `.opencode` dir or `OPENCODE_CONFIG_DIR`, OpenCode installs `@opencode-ai/plugin` into that dir and writes:
+When `plugin` entries exist in a writable `.deepseek-code` dir or `OPENCODE_CONFIG_DIR`, OpenCode installs `@opencode-ai/plugin` into that dir and writes:
 
 - `package.json`
 - `bun.lock`

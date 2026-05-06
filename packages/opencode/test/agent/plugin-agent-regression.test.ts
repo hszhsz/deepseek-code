@@ -31,7 +31,7 @@ test("plugin-registered agents appear in Agent.list", async () => {
         ].join("\n"),
       )
       await Bun.write(
-        path.join(dir, "opencode.json"),
+        path.join(dir, "deepseek-code.json"),
         JSON.stringify({
           $schema: "https://opencode.ai/config.json",
           plugin: [pathToFileURL(pluginFile).href],

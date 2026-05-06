@@ -48,9 +48,9 @@ function writeProviderAuthPlugin(dir: string) {
     const fs = yield* FileSystem.FileSystem
     const path = yield* Path.Path
 
-    yield* fs.makeDirectory(path.join(dir, ".opencode", "plugin"), { recursive: true })
+    yield* fs.makeDirectory(path.join(dir, ".deepseek-code", "plugin"), { recursive: true })
     yield* fs.writeFileString(
-      path.join(dir, ".opencode", "plugin", "provider-oauth-parity.ts"),
+      path.join(dir, ".deepseek-code", "plugin", "provider-oauth-parity.ts"),
       [
         "export default {",
         '  id: "test.provider-oauth-parity",',
@@ -86,7 +86,7 @@ function withProviderProject<A, E, R>(self: (dir: string) => Effect.Effect<A, E,
     const dir = yield* fs.makeTempDirectoryScoped({ prefix: "opencode-test-" })
 
     yield* fs.writeFileString(
-      path.join(dir, "opencode.json"),
+      path.join(dir, "deepseek-code.json"),
       JSON.stringify({ $schema: "https://opencode.ai/config.json", formatter: false, lsp: false }),
     )
     yield* writeProviderAuthPlugin(dir)

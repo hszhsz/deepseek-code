@@ -62,7 +62,7 @@ export const FIMTool = Tool.define(
               title: "FIM Completion",
               output:
                 "Error: DEEPSEEK_API_KEY is not set. Please set it to use FIM completion.",
-              metadata: { error: true },
+              metadata: { error: true, file: "", line: 0, column: 0, completionLength: 0 },
             }
           }
 
@@ -107,6 +107,7 @@ export const FIMTool = Tool.define(
             title: `FIM completion at ${path.basename(filePath)}:${params.line}:${params.column}`,
             output: completion || "(empty completion)",
             metadata: {
+              error: false,
               file: filePath,
               line: params.line,
               column: params.column,

@@ -23,10 +23,11 @@ import { Format } from "@/format"
 import { Ripgrep } from "@/file/ripgrep"
 import * as Truncate from "@/tool/truncate"
 import { InstanceState } from "@/effect/instance-state"
+import { Env } from "@/env"
 
 const node = CrossSpawnSpawner.defaultLayer
 const configLayer = TestConfig.layer({
-  directories: () => InstanceState.directory.pipe(Effect.map((dir) => [path.join(dir, ".opencode")])),
+  directories: () => InstanceState.directory.pipe(Effect.map((dir) => [path.join(dir, ".deepseek-code")])),
 })
 
 const registryLayer = ToolRegistry.layer.pipe(
@@ -47,6 +48,7 @@ const registryLayer = ToolRegistry.layer.pipe(
   Layer.provide(node),
   Layer.provide(Ripgrep.defaultLayer),
   Layer.provide(Truncate.defaultLayer),
+  Layer.provide(Env.defaultLayer),
 )
 
 const it = testEffect(Layer.mergeAll(registryLayer, node))
@@ -59,7 +61,7 @@ describe("tool.registry", () => {
   it.instance("loads tools from .opencode/tool (singular)", () =>
     Effect.gen(function* () {
       const test = yield* TestInstance
-      const opencode = path.join(test.directory, ".opencode")
+      const opencode = path.join(test.directory, ".deepseek-code")
       const tool = path.join(opencode, "tool")
       yield* Effect.promise(() => fs.mkdir(tool, { recursive: true }))
       yield* Effect.promise(() =>
@@ -86,7 +88,7 @@ describe("tool.registry", () => {
   it.instance("loads tools from .opencode/tools (plural)", () =>
     Effect.gen(function* () {
       const test = yield* TestInstance
-      const opencode = path.join(test.directory, ".opencode")
+      const opencode = path.join(test.directory, ".deepseek-code")
       const tools = path.join(opencode, "tools")
       yield* Effect.promise(() => fs.mkdir(tools, { recursive: true }))
       yield* Effect.promise(() =>
@@ -113,7 +115,7 @@ describe("tool.registry", () => {
   it.instance("loads tools with external dependencies without crashing", () =>
     Effect.gen(function* () {
       const test = yield* TestInstance
-      const opencode = path.join(test.directory, ".opencode")
+      const opencode = path.join(test.directory, ".deepseek-code")
       const tools = path.join(opencode, "tools")
       yield* Effect.promise(() => fs.mkdir(tools, { recursive: true }))
       yield* Effect.promise(() =>

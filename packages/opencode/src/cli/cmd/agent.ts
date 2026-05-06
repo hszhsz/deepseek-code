@@ -106,7 +106,7 @@ const AgentCreateCommand = effectCmd({
           if (prompts.isCancel(scopeResult)) throw new UI.CancelledError()
           scope = scopeResult
         }
-        targetPath = path.join(scope === "global" ? Global.Path.config : path.join(ctx.worktree, ".opencode"), "agent")
+        targetPath = path.join(scope === "global" ? Global.Path.config : path.join(ctx.worktree, ".deepseek-code"), "agent")
       }
 
       // Get description

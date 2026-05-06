@@ -145,7 +145,7 @@ describe("containsPath", () => {
       directory: subdir,
       fn: () => {
         // .opencode at worktree root, but we're running from packages/lib
-        expect(containsPath(path.join(tmp.path, ".opencode", "state"), Instance.current)).toBe(true)
+        expect(containsPath(path.join(tmp.path, ".deepseek-code", "state"), Instance.current)).toBe(true)
         // sibling package should also be accessible
         expect(containsPath(path.join(tmp.path, "packages", "other", "file.ts"), Instance.current)).toBe(true)
         // worktree root itself
